@@ -1,0 +1,149 @@
+(footprint "BLX-A Fuse Holder"
+	(version 20240108)
+	(generator "pcbnew")
+	(generator_version "8.0")
+	(layer "F.Cu")
+	(property "Reference" "REF**"
+		(at -11.5 -6 0)
+		(unlocked yes)
+		(layer "F.SilkS")
+		(uuid "e193f77e-bfa7-4162-a06c-d94ac7599108")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.1)
+			)
+		)
+	)
+	(property "Value" "BLX-A Fuse Holder"
+		(at 1.5 -3 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(uuid "8d85822c-2e60-4746-a7ea-8b2c0863a12f")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Footprint" ""
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "845a2127-5b61-44ef-b3e1-7eb1601b0e37")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "1733fc94-d982-42db-b02d-5f6525557781")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "3d0cb4a8-0b07-4b04-94f6-f999451c1879")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(fp_line
+		(start -14 -5)
+		(end 14 -5)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "f12b2c0f-e095-4ec0-8c7d-9b3f0255fd44")
+	)
+	(fp_line
+		(start -14 5)
+		(end -14 -5)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "f3214341-988e-49a0-a4de-b71df4d2b35f")
+	)
+	(fp_line
+		(start 14 -5)
+		(end 14 5)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "bde4bded-d4e4-4b45-89f1-09d38121187a")
+	)
+	(fp_line
+		(start 14 5)
+		(end -14 5)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "07d7cdfd-0284-4dfe-bbd9-467558c36102")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 0.5 3.5 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(uuid "d4f3e14d-93eb-42ae-9f25-1c1b3e06ac8c")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(pad "1" thru_hole circle
+		(at -11.25 0)
+		(size 3 3)
+		(drill 1.5)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "12d3fee2-ab14-47f6-b025-de58f3856bf0")
+	)
+	(pad "2" thru_hole circle
+		(at 11.25 0)
+		(size 3 3)
+		(drill 1.5)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "00b25f32-d723-4a2c-9db8-c461eb58cea9")
+	)
+	(model "${KIPRJMOD}/Fuse Holder.step"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
+)
