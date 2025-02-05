@@ -1,7 +1,5 @@
 import pandas as pd
-import xarray as xr
 import numpy as np
-import re
 
 
 def sanitize_var_name(name):
