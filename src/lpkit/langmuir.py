@@ -216,6 +216,7 @@ def average_masked_data(data):
 
     return avg_time, avg_voltage, avg_current
 
+# MARK: Plots
 
 def plot_iv_characteristic(
     i,
@@ -293,13 +294,8 @@ def plot_iv_plotly(
         xaxis_title="V (V)",
         yaxis_title="I (mA)",
         legend_title="Legend",
-        template="plotly_dark",
-        plot_bgcolor="#2e2e2e",
-        paper_bgcolor="#2e2e2e",
-        font=dict(color="white"),
-        xaxis=dict(showgrid=True, gridcolor="gray"),
-        yaxis=dict(showgrid=True, gridcolor="gray"),
     )
+    plotly_style_dark(fig)
 
     fig.show()
 
@@ -339,16 +335,22 @@ def plot_raw_data_plotly(data, downdampling=10):
         xaxis_title="Time",
         yaxis_title="Value",
         legend_title="Legend",
-        template="plotly_dark",
-        plot_bgcolor="#2e2e2e",
-        paper_bgcolor="#2e2e2e",
-        font=dict(color="white"),
-        xaxis=dict(showgrid=True, gridcolor="gray"),
-        yaxis=dict(showgrid=True, gridcolor="gray"),
     )
+    plotly_style_dark(fig)
 
     fig.show()
 
+def plotly_style_dark(fig):
+    fig.update_layout(
+    template="plotly_dark",
+    plot_bgcolor="#2e2e2e",
+    paper_bgcolor="#2e2e2e",
+    font=dict(color="white"),
+    xaxis=dict(showgrid=True, gridcolor="gray"),
+    yaxis=dict(showgrid=True, gridcolor="gray"),
+    )    
+
+# MARK: pyqtgraph
 
 def use_pyqtgraph(data):
     import pyqtgraph as pg
