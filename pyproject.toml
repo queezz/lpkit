@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lpkit"
+version = "0.1.0"
+description = "A lightweight toolkit for Langmuir Probe analysis"
+authors = [
+    {name="KAA", email="arseniy.a.kuzmin@gmail.com" },
+]
+license = {file = "LICENSE"}
+readme = "README.md"
+keywords = ["Langmuir probe", "plasma", "diagnostics", "IV analysis"]
+dependencies = [
+    "numpy",
+    "scipy",
+    "matplotlib",
+    "plotly",
+]
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+
+[project.optional-dependencies]
+full = ["pyqtgraph", "h5py"]  # If you have additional optional tools
+
+[tool.setuptools]
+packages = ["lpkit"]
+
+[tool.setuptools.package-data]
+lpkit = ["data/*.csv", "examples/*.ipynb"]  # Include example notebooks & sample data
+
+[project.urls]
+"Homepage" = "https://github.com/queezz/lpkit"
+"Documentation" = "https://github.com/queezz/lpkit"
+"Source" = "https://github.com/queezz/lpkit"
+"Bug Tracker" = "https://github.com/queezz/lpkit/issues"
