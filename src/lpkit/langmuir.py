@@ -69,9 +69,14 @@ def process_lp_data(df, metadata, cutoff=1e4, fs=1e6, time_offset=0.33, **kws):
     peaks = peaks[1:-1]  # Remove first and last peaks
 
     mask = np.zeros_like(time, dtype=bool)
-    for peak_idx in peaks:
-        start_time = time[peak_idx] - time_offset
-        mask |= (time >= start_time) & (time <= time[peak_idx])
+    if time_offset > 0:
+        for peak_idx in peaks:
+            start_time = time[peak_idx] - time_offset
+            mask |= (time >= start_time) & (time <= time[peak_idx])
+    else:
+        for peak_idx in peaks:
+            start_time = time[peak_idx] - time_offset
+            mask |= (time <= start_time) & (time >= time[peak_idx])
 
     return {
         "time": time,
@@ -99,14 +104,24 @@ def make_segments(data):
     peaks = data["peaks"]
     time_offset = data["time_offset"]
 
-    voltage_segments = [
-        voltage[mask & (time >= time[p] - time_offset) & (time <= time[p])]
-        for p in peaks
-    ]
-    current_segments = [
-        current[mask & (time >= time[p] - time_offset) & (time <= time[p])]
-        for p in peaks
-    ]
+    if time_offset > 0:
+        voltage_segments = [
+            voltage[mask & (time >= time[p]) & (time <= time[p] + time_offset)]
+            for p in peaks
+        ]
+        current_segments = [
+            current[mask & (time >= time[p]) & (time <= time[p] + time_offset)]
+            for p in peaks
+        ]
+    else:
+        voltage_segments = [
+            voltage[mask & (time <= time[p] - time_offset) & (time >= time[p])]
+            for p in peaks
+        ]
+        current_segments = [
+            current[mask & (time <= time[p] - time_offset) & (time >= time[p])]
+            for p in peaks
+        ]
 
     min_length = min(len(seg) for seg in voltage_segments)
     truncated_v = np.array([seg[:min_length] for seg in voltage_segments])
@@ -116,7 +131,7 @@ def make_segments(data):
     return segments
 
 
-def average_segments(segments, num_bins=1000,sigma=2):
+def average_segments(segments, num_bins=1000, sigma=2):
     """
     Average segments of IV data
     """
@@ -151,41 +166,58 @@ def average_segments(segments, num_bins=1000,sigma=2):
     # Bin centers as the final voltage axis
     V_binned = (bins[:-1] + bins[1:]) / 2  # Midpoints of bins
 
-    # Optional: Apply Gaussian smoothing to clean noise    
+    # Optional: Apply Gaussian smoothing to clean noise
 
     I_smooth = gaussian_filter1d(I_binned, sigma=sigma)
     return V_binned, I_smooth
 
-# MARK: Fit LogI
-def fit_logi(v,logi,vlim):
-    mask = (v > vlim[0]) & (v < vlim[1])
+# MARK: FIT EXP
+def prob_func(x, iis, ies, vs, te, slope):
+    """
+    Langmuir Probe I-V characteristic fitting function.
 
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(x=v, y=logi, mode='lines', name='IV filtered',
-                            line=dict(color='#ebab7a')))
-    fig.add_trace(go.Scatter(x=v[mask], y=logi[mask],
-                            mode='lines', name='Linear region', 
-                            line=dict(width=10, color='rgba(255, 0, 0, 0.5)')
-                            ))
+    This function models the current-voltage (I-V) characteristic of a Langmuir probe
+    using an exponential term for electron collection and a linear term for ion collection.
 
-    try:
-        coeffs = np.polyfit(v[mask], logi[mask], 1)
-        vfit = np.linspace(*vlim,50)
-        ifit = np.polyval(coeffs, vfit)
-        fig.add_trace(go.Scatter(x=vfit, y=ifit, mode='lines', name='Fit'))
-        print(f'\033[44mTe = {1/coeffs[0]:.2f} eV\033[0m')
-    except TypeError:
-        pass
+    Parameters:
+        x (array-like): Voltage values (V).
+        iis (float): Ion saturation current (A), the asymptotic current at large negative voltages.
+        ies (float): Electron saturation current (A), the prefactor for the electron current.
+        vs (float): Plasma potential (V), the voltage at which electron current starts increasing exponentially.
+        te (float): Electron temperature (eV), determines the steepness of the electron collection curve.
+        slope (float): Linear correction term, accounting for additional effects such as sheath expansion.
 
-    fig.update_layout(
-        title="Getting Te from IV",
-        xaxis_title="V (V)",
-        yaxis_title="log(I + const)",
-        legend_title="Legend",
-    )
-    plotly_style_dark(fig)
+    Returns:
+        array-like: Calculated current values corresponding to the given voltage inputs.
+    """
+    return slope * (x - vs) + iis + ies * np.exp((x - vs) / te)
 
-    fig.show()
+
+def fit_lp(x, y, **kws):
+    """
+    Fit Langmuir Probe I(V) characteristic
+    """
+    from lmfit import Model
+
+    model = Model(prob_func)
+    te_max = kws.get("te_max", 25.0)
+    te_min = kws.get("te_min", .5)
+    te_init = kws.get("te", 3.0)
+    iis_min = kws.get("iis_min", -5.0e-4)
+    iis_max = kws.get("iis_max", -1e-2)
+    iis_init = kws.get("iis", -1e-3)
+    vs_init = kws.get("vs", 100)
+    ies_init = kws.get("ies", 1e-2)
+    params = model.make_params()
+    params["iis"].set(iis_init, min=iis_min, max=iis_max)
+    params["ies"].set(ies_init, min=1e-4, max=0.1)
+    params["vs"].set(vs_init,min=vs_init-30,max=vs_init+20,vary=True)
+    params["te"].set(te_init, min=te_min, max=te_max)
+    params["slope"].set(1e-5, min=-1, max=1,vary=False)
+
+    result = model.fit(y, params, x=x,method='powell')
+
+    return result
 
 
 # MARK: PLOT Raw MPL
@@ -403,13 +435,14 @@ def plot_raw_data_plotly(data, downdampling=10):
 
     fig.update_layout(
         title="Raw LP data",
-        xaxis_title="Time",
-        yaxis_title="Value",
+        xaxis_title="Time (s)",
+        yaxis_title="Voltage (V)",
         legend_title="Legend",
     )
     plotly_style_dark(fig)
 
     fig.show()
+    return fig
 
 
 def plotly_style_dark(fig):
@@ -421,6 +454,14 @@ def plotly_style_dark(fig):
         xaxis=dict(showgrid=True, gridcolor="gray"),
         yaxis=dict(showgrid=True, gridcolor="gray"),
     )
+
+
+def plotly_write_png(fig, filename="plotly_export.png"):
+    current_xrange = fig.layout.xaxis.range
+    current_yrange = fig.layout.yaxis.range
+
+    fig.update_layout(xaxis_range=current_xrange, yaxis_range=current_yrange)
+    fig.write_image(filename, scale=2)
 
 
 # MARK: pyqtgraph
